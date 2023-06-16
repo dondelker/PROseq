@@ -1,0 +1,25 @@
+# Remove adapter sequences and poor quality reads
+/ddn/gs1/home/delkerda/tools/fastp -i MES1693_IMCD_1hr_Rep2.fastq.gz -o MES1693_IMCD_1hr_Rep2_CT.fastq --failed_out failed.tsv --dont_overwrite -U --umi_loc=read1 --umi_len=6 --adapter_sequence=TGGAATTCTCGG
+
+# UMIs, single and multiple samples
+for file in *single.fastq.gz; do echo srun --partition=bioinfo --cpus-per-task=8 /ddn/gs1/home/delkerda/tools/fastp -i "${file}" -o "${file/20220816_100951.L001.single.fastq.gz/UCT.fastq.gz}" -h "${file/20220816_100951.L001.single.fastq.gz/fastp.html}" -j "${file/20220816_100951.L001.single.fastq.gz/fastp.json}" -U --umi_loc=read1 --umi_len=6 --adapter_sequence=TGGAATTCTCGGGTGCCAAGG --failed_out "${file/20220816_100951.L001.single.fastq.gz/failed.tsv}" --dont_overwrite; done
+for file in *_R.fastq; do echo srun --partition=bioinfo --cpus-per-task=8 /ddn/gs1/home/delkerda/tools/fastp -i "${file}" -o "${file/R.fastq/UCTR.fastq.gz}" -h "${file/R.fastq/fastp.html}" -j "${file/R.fastq/fastp.json}" -U --umi_loc=read1 --umi_len=6 --adapter_sequence=TGGAATTCTCGGGTGCCAAGG --failed_out "${file/R.fastq/failed.tsv}" --dont_overwrite; done
+for file in *single.fastq.gz; do echo srun --partition=bioinfo --cpus-per-task=8 /ddn/gs1/home/delkerda/tools/fastp -i "${file}" -o "${file/20220824_105501.L001.single.fastq.gz/CT.fastq.gz}" -h "${file/20220824_105501.L001.single.fastq.gz/fastp.html}" -j "${file/20220824_105501.L001.single.fastq.gz/fastp.json}" -U --umi_loc=read1 --umi_len=6 --adapter_sequence=TGGAATTCTCGGGTGCCAAGG --failed_out "${file/20220824_105501.L001.single.fastq.gz/failed.tsv}" --dont_overwrite; done
+
+# Paired zipped fastqs, no UMIs, mulitple samples
+for file in $(ls *.fastq.gz | sed -r 's/[12].fastq.gz//' | sort -u); do echo /ddn/gs1/home/delkerda/tools/fastp -i "${file}1.fastq.gz" -I "${file}2.fastq.gz" -o "${file/1.fastq.gz/}CT.1.fastq.gz" -O "${file/2.fastq.gz/}CT.2.fastq.gz" -h "${file/[12].fastq.gz/}fastp.html" -j "${file/[12].fastq.gz/}fastp.json" --failed_out "${file/[12].fastq.gz/}failed.tsv" --dont_overwrite; done
+
+# Single-end zipped fastqs, no UMIs, multiple samples
+for file in *fastq.gz; do echo srun --partition=bioinfo --cpus-per-task=8 /ddn/gs1/home/delkerda/tools/fastp -i "${file}" -o "${file/20211208_205912.L001.single.fastq.gz/CT.fastq.gz}" -h "${file/20211208_205912.L001.single.fastq.gz/fastp.html}" -j "${file/20211208_205912.L001.single.fastq.gz/fastp.json}" --failed_out "${file/20211208_205912.L001.single.fastq.gz/failed.tsv}" --dont_overwrite; done
+for file in *CTR.fastq.gz; do echo /ddn/gs1/home/delkerda/tools/fastp -i "${file}" -o "${file/CTR.fastq.gz/RCT.fastq.gz}" -h "${file/CTR.fastq.gz/RCT.fastp.html}" -j "${file/CTR.fastq.gz/RCT.fastp.json}" --failed_out "${file/CTR.fastq.gz/RCT.failed.tsv}" --dont_overwrite; done
+for file in *single.fastq.gz; do echo /ddn/gs1/home/delkerda/tools/fastp -i "${file}" -o "${file/L001.single.fastq.gz/CT.fastq.gz}" -h "${file/L001.single.fastq.gz/fastp.html}" -j "${file/L001.single.fastq.gz/fastp.json}" --failed_out "${file/L001.single.fastq.gz/failed.tsv}" --dont_overwrite; done
+
+for file in *fastq; do echo /ddn/gs1/home/delkerda/tools/fastp -i "${file}" -o "${file/fastq/CT.fastq.gz}" -h "${file/fastq/fastp.html}" -j "${file/fastq/fastp.json}" --failed_out "${file/fastq/failed.tsv}" --dont_overwrite; done
+
+# Paired fastqs, no UMIs, mulitple samples
+for file in $(ls *.fastq | sed -r 's/[12].fastq//' | sort -u); do echo srun --partition=bioinfo --cpus-per-task=8 /ddn/gs1/home/delkerda/tools/fastp -i "${file}1.fastq" -I "${file}2.fastq" -o "${file/1.fastq/}CT.1.fastq.gz" -O "${file/2.fastq/}CT.2.fastq.gz" -h "${file/[12].fastq/}fastp.html" -j "${file/[12].fastq/}fastp.json" --failed_out "${file/[12].fastq/}failed.tsv" --dont_overwrite; done
+
+
+Illumina small RNA adapter TGGAATTCTCGGGTGCCAAGG
+
+fastp -i in.fastq -o out.fastq --umi_loc=read1 --umi_len=6 --adapter_sequence=TGGAATTCTCGG

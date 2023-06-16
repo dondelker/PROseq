@@ -1,0 +1,24 @@
+# Human PROseq, multiple sample fastqs
+# Single end, single mappers
+for file in *CT.fastq; do echo srun --partition=bioinfo --cpus-per-task=8 STAR --runMode alignReads --genomeDir /ddn/gs1/shared/dirib/reference_genomes/hg38/STAR_index_hg38noAlt_GencodeV32-SG --readFilesIn "${file}" --outFilterType BySJout --outFilterMultimapNmax 1 --outSAMtype BAM SortedByCoordinate --outWigType bedGraph --outWigStrand Unstranded --outWigNorm None --outFileNamePrefix "${file/CTR.fastq/}"; done
+
+# Single end, multiple mappers
+for file in *CTR.fastq; do echo srun --partition=bioinfo --cpus-per-task=8 STAR --runMode alignReads --genomeDir /ddn/gs1/shared/dirib/reference_genomes/hg38/STAR_index_hg38noAlt_GencodeV32-SG --readFilesIn "${file}" --outFilterType BySJout --outSAMtype BAM SortedByCoordinate --outWigType bedGraph --outWigStrand Unstranded --outWigNorm None --outFileNamePrefix "${file/CTR.fastq/}"; done
+
+# Single end, multiple mappers, compressed fastqs
+for file in *CT.fastq.gz; do echo srun --partition=bioinfo --cpus-per-task=8 STAR --runMode alignReads --genomeDir /ddn/gs1/shared/dirib/reference_genomes/hg38/STAR_index_hg38noAlt_GencodeV32-SG --readFilesIn "${file}" --readFilesCommand zcat --outFilterType BySJout --outSAMtype BAM SortedByCoordinate --outWigType bedGraph --outWigStrand Unstranded --outWigNorm None --outFileNamePrefix "${file/CT.fastq.gz/}"; done
+
+# Paired end reads, multiple samples
+for file in $(ls *.fastq | sed -r 's/_CT.[12].fastq//' | sort -u); do echo srun --partition=bioinfo --cpus-per-task=8 STAR --runMode alignReads --genomeDir /ddn/gs1/shared/dirib/reference_genomes/hg38/STAR_index_hg38noAlt_GencodeV32-SG --readFilesIn "${file}_CT.1.fastq" "${file}_CT.2.fastq" --outFilterType BySJout --outSAMtype BAM SortedByCoordinate --outWigType bedGraph --outWigStrand Unstranded --outWigNorm None --outFileNamePrefix "${file/_CT.[12].fastq/}"; done
+for file in $(ls *.fastq | sed -r 's/_[12].fastq//' | sort -u); do echo srun --partition=bioinfo --cpus-per-task=8 STAR --runMode alignReads --genomeDir /ddn/gs1/shared/dirib/reference_genomes/hg38/STAR_index_hg38noAlt_GencodeV32-SG --readFilesIn "${file}_1.fastq" "${file}_2.fastq" --outSAMtype BAM SortedByCoordinate --outWigType bedGraph --outWigStrand Unstranded --outWigNorm None --outFileNamePrefix "${file/_[12].fastq/}"; done
+
+# Human PROseq, multimapper, single sample fastq
+srun --partition=bioinfo --cpus-per-task=8 STAR --runMode alignReads --genomeDir /ddn/gs1/shared/dirib/reference_genomes/hg38/STAR_index_hg38noAlt_GencodeV32-SG --readFilesIn NOVA0255_Rep2-1hr_CTR.fastq --outFilterType BySJout --outSAMtype BAM SortedByCoordinate --outWigType bedGraph --outWigStrand Unstranded --outWigNorm None --outFileNamePrefix NOVA0255_Rep2-1hr_CTR
+
+# Paired end reads, multiple samples, compressed fastqs
+Human
+for file in $(ls *.fastq.gz | sed -r 's/_CT.[12].fastq.gz//' | sort -u); do echo srun --partition=bioinfo --cpus-per-task=8 STAR --runMode alignReads --genomeDir /ddn/gs1/shared/dirib/reference_genomes/hg38/STAR_index_hg38noAlt_GencodeV32-SG --readFilesIn "${file}_CT.1.fastq.gz" "${file}_CT.2.fastq.gz" --readFilesCommand zcat --outFilterType BySJout --outSAMtype BAM SortedByCoordinate --outWigType bedGraph --outWigStrand Unstranded --outWigNorm None --outFileNamePrefix "${file/_CT.[12].fastq.gz/}"; done
+
+Mouse
+for file in $(ls *.fastq.gz | sed -r 's/_20220119_154109.L001.CT.[12].fastq.gz//' | sort -u); do echo srun --partition=bioinfo --cpus-per-task=8 STAR --runMode alignReads --genomeDir /ddn/gs1/shared/dirib/reference_genomes/mm10/mm10gencode/indexSTAR_gencode.vM18.annotation --readFilesIn "${file}_20220119_154109.L001.CT.1.fastq.gz" "${file}_20220119_154109.L001.CT.2.fastq.gz" --readFilesCommand zcat --outFilterType BySJout --outSAMtype BAM SortedByCoordinate --outWigType bedGraph --outWigStrand Unstranded --outWigNorm None --outFileNamePrefix "${file/_20220119_154109.L001.CT.[12].fastq.gz/}"; done
+for file in $(ls *.fq.gz | sed -r 's/_val_[12].fq.gz//' | sort -u); do echo srun --partition=bioinfo --cpus-per-task=8 STAR --runMode alignReads --genomeDir /ddn/gs1/shared/dirib/reference_genomes/mm10/mm10gencode/indexSTAR_gencode.vM18.annotation --readFilesIn "${file}_val_1.fq.gz" "${file}_val_2.fq.gz" --readFilesCommand zcat --outFilterType BySJout --outSAMtype BAM SortedByCoordinate --outWigType bedGraph --outWigStrand Unstranded --outFileNamePrefix "${file/_val_[12].fq.gz/}"; done

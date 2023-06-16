@@ -1,0 +1,101 @@
+# Convert bam file to unstranded bigwig file, single and multiple samples
+
+# No normalization
+bamCoverage -b SRR7245587Aligned.sortedByCoord.out.bam -o SRR7245584.bw
+for file in *.bam; do echo srun --partition=bioinfo --cpus-per-task=8 /ddn/gs1/biotools/deepTools33/bin/bamCoverage -b "${file}" -o "${file/_nodups.bam/.bw}" -p 8 --binSize 20; done
+
+# BPM normalization
+for file in *.bam; do echo srun --partition=bioinfo --cpus-per-task=8 bamCoverage -b "${file}" --normalizeUsing BPM -o "${file/.bam/.bw}" -p 8 --binSize 20--centerReads; done
+for file in *Aligned.sortedByCoord.out.bam; do echo bamCoverage -b "${file}" --normalizeUsing BPM -o "${file/Aligned.sortedByCoord.out.bam/.bw}" -p 8 --binSize 20 --centerReads; done
+for file in *.bam; do echo srun --partition=bioinfo --cpus-per-task=8 bamCoverage -b "${file}" --normalizeUsing BPM -o "${file/.bam/.bw}" -p 8 --binSize 20; done
+
+# RPM normalization
+for file in *.bam; do echo srun --partition=bioinfo --cpus-per-task=8 /ddn/gs1/biotools/deepTools33/bin/bamCoverage -b "${file}" -o "${file/unique.bam/3end.bw}" -p 8 --binSize 20 --normalizeUsing CPM --Offset -1 --effectiveGenomeSize 2913022398 --ignoreForNormalization chrX chrY -e 150; done
+
+# RGPC normalization
+# Human
+for file in *sorted.bam; do echo srun --partition=bioinfo --cpus-per-task=8 /ddn/gs1/biotools/deepTools33/bin/bamCoverage -b "${file}" -o "${file/_sorted.bam/.bw}" -p 8 --binSize 20 --normalizeUsing RPGC --effectiveGenomeSize 2913022398 --ignoreForNormalization chrX chrY -e; done
+for file in *.bam; do echo srun --partition=bioinfo --cpus-per-task=8 /ddn/gs1/biotools/deepTools33/bin/bamCoverage -b "${file}" -o "${file/bam/bw}" -p 8 --binSize 20 --normalizeUsing RPGC --effectiveGenomeSize 2913022398 --ignoreForNormalization chrX chrY -e; done
+for file in *nochrM.bam; do echo srun --partition=bioinfo --cpus-per-task=8 /ddn/gs1/biotools/deepTools33/bin/bamCoverage -b "${file}" -o "${file/_G41H6_nochrM.bam/.bw}" -p 8 --binSize 20 --normalizeUsing RPGC --effectiveGenomeSize 2913022398 --ignoreForNormalization chrX chrY -e; done
+
+# RGPC normalization, ignore duplicates
+# Human
+for file in *.bam; do echo srun --partition=bioinfo --cpus-per-task=8 /ddn/gs1/biotools/deepTools33/bin/bamCoverage -b "${file}" -o "${file/sorted.bam/RGPC.bw}" -p 8 --binSize 20 --normalizeUsing RPGC --effectiveGenomeSize 2913022398 --ignoreDuplicates --ignoreForNormalization chrX chrY -e; done
+
+# RGPC normalization, don't use mito reads in normalization
+# Human
+for file in *.bam; do echo srun --partition=bioinfo --cpus-per-task=8 /ddn/gs1/biotools/deepTools33/bin/bamCoverage -b "${file}" -o "${file/merged.bam/reseq.bw}" -p 8 --binSize 20 --normalizeUsing RPGC --effectiveGenomeSize 2913022398 --ignoreForNormalization chrX chrY chrM -e; done
+
+# RPGC normalization, Mouse
+for file in *sorted.bam; do echo srun --partition=bioinfo --cpus-per-task=8 /ddn/gs1/biotools/deepTools33/bin/bamCoverage -b "${file}" -o "${file/sorted.bam/bw}" -p 8 --binSize 100 --normalizeUsing RPGC --effectiveGenomeSize 2150570000 --ignoreForNormalization chrX chrY -e; done
+
+# Convert bam file to stranded bigwig files
+for file in *.bam; do echo srun --partition=bioinfo --cpus-per-task=8 /ddn/gs1/biotools/deepTools33/bin/bamCoverage -b merged_0hr.bam --normalizeUsing BPM --filterRNAstrand reverse -o dtools_0hr_plus.bw
+for file in *.bam; do echo srun --partition=bioinfo --cpus-per-task=8 /ddn/gs1/biotools/deepTools33/bin/bamCoverage -b merged_0hr.bam --normalizeUsing BPM --filterRNAstrand forward -o dtools_0hr_minus.bw
+
+# Convert bam file to stranded bigwig files, multiple samples
+for file in *bam; do echo srun --partition=bioinfo --cpus-per-task=8 /ddn/gs1/biotools/deepTools33/bin/bamCoverage -b "${file}" --normalizeUsing RPKM --filterRNAstrand reverse -o "${file/.bam/.plus.bw}"; done
+for file in *bam; do echo srun --partition=bioinfo --cpus-per-task=8 /ddn/gs1/biotools/deepTools33/bin/bamCoverage -b "${file}" --normalizeUsing RPKM --filterRNAstrand forward 16 -o "${file/.bam/.minus.bw}"; done
+for file in *.bam; do echo bamCoverage -b "${file}" --normalizeUsing BPM --samFlagExclude 16 -r chr19:45405000:45413000 -o "${file/.bam/fwd.bw}"; done
+for file in *.bam; do echo bamCoverage -b "${file}" --normalizeUsing BPM --samFlagInclude 16 -r chr19:45405000:45413000 -o "${file/.bam/rev.bw}"; done
+
+# Convert single bam file to stranded bedgraph file
+srun --partition=bioinfo --cpus-per-task=8 bamCoverage -b NOVA0255_Rep1-1hr_unique.bam --filterRNAstrand forward -of bedgraph -o NOVA0255_Rep1-1hr_unique.plus.bg --ignoreDuplicates -p 8
+srun --partition=bioinfo --cpus-per-task=8 bamCoverage -b NOVA0255_Rep1-1hr_unique.bam --filterRNAstrand reverse -of bedgraph -o NOVA0255_Rep1-1hr_unique.minus.bg -- ignoreDuplicates -p 8
+
+# Convert multiple bam files to stranded bedgraph files
+for file in *.bam; do echo srun --partition=bioinfo --cpus-per-task=8 bamCoverage -b "${file}" --filterRNAstrand forward -of bedgraph -o "${file/.bam/}.plus.bg" --ignoreDuplicates -p 8; done
+for file in *.bam; do echo srun --partition=bioinfo --cpus-per-task=8 bamCoverage -b "${file}" --filterRNAstrand reverse -of bedgraph -o "${file/.bam/}.minus.bg" --ignoreDuplicates -p 8; done
+
+# Compute matrix for plots and heatmaps
+/ddn/gs1/biotools/deepTools33/bin/computeMatrix reference-point -S testFiles/*bw -R testFiles/H3K27ac_gained.bed -p 8 --scale 4 --referencePoint center -a 2000 -b 2000 -out H3K27ac_gained.matrix --binSize 100
+/ddn/gs1/biotools/deepTools33/bin/computeMatrix reference-point -S WT-CON5.bw WT-CON6.bw HDAC-cOE-CON7.bw HDAC-cOE-CON8.bw WT-DES1.bw WT-DES2.bw HDAC-cOE-DES3.bw HDAC-cOE-DES4.bw -R mm10_UCSC.bed -p 8 -a 5000 -b 5000 -out ATAC_HDAC_DES.matrix --missingDataAsZero --skipZeros --binSize 100
+/ddn/gs1/biotools/deepTools33/bin/computeMatrix reference-point -S 3386_0hr_PROSeq.bw 3386_0hr_PROSeq.bw -R NewG4coordinates.bed -p 8 -a 400 -out G4_PROseq.matrix --missingDataAsZero --skipZeros --binSize 10
+/ddn/gs1/biotools/deepTools33/bin/computeMatrix reference-point -S *.bw -R Protein_coding_noMT.bed -p 8 -a 1000 -b 1000 -out Nano_list.matrix --missingDataAsZero --skipZeros --binSize 20
+
+/ddn/gs1/biotools/deepTools33/bin/computeMatrix reference-point --referencePoint center -S WT1NFAT5.bw WT2NFAT5.bw WT1NaClNFAT5.bw WT2NaClNFAT5.bw HET1NFAT5.bw HET2NFAT5.bw HET1NaClNFAT5.bw HET2NaClNFAT5.bw ATM1NFAT5.bw ATM2NFAT5.bw ATM1NaClNFAT5.bw ATM2NaClNFAT5.bw -R protein_coding_noMT.bed -p 8 -a 2000 -b 2000 -out NFAT5_TMM.matrix --missingDataAsZero --skipZeros --binSize 20
+
+# Compute matrix with Josh's custom python script
+/ddn/gs1/home/delkerda/tools/jburdick_tools/2022/joshtburdick-work/bin/compute.matrix.stranded reference-point -S Rep2_0hr Rep2_1hr -R NaCl_338.bed -p 8 -a 2000 -b 2000 -out PROseq_338.matrix --missingDataAsZero --skipZeros --binSize 20
+
+# Use multiple bed files
+/ddn/gs1/biotools/deepTools33/bin/computeMatrix reference-point -S WT_H3K27me3.bw Ezh2-cKO_H3K27me3.bw -R H3K27me3_RNA_Up_Gain.bed H3K27me3_RNA_Up_Loss.bed -p 8 -a 5000 -b 5000 -out H3K27me3_RNA_Up.matrix --missingDataAsZero --skipZeros --binSize 200
+/ddn/gs1/biotools/deepTools33/bin/computeMatrix reference-point -S testFiles/*bw -R NaCl_GBup_PPdown.bed NaCl_GBup_PPdown.bed -p 8 -a 5000 -b 5000 -out H3Kmarks_NaCl.matrix --missingDataAsZero --skipZeros --binSize 200
+/ddn/gs1/biotools/deepTools33/bin/computeMatrix reference-point --referencePoint center -S NT_G4_merged.bw NaCl_G4_merged.bw NT_G41H6_merged.bw NaCl_G41H6_merged.bw NT_Rloop_merged.bw NaCl_Rloop_merged.bw -R G4peaks.bed G41H6peaks.bed RloopPeaks.bed -p 8 -a 500 -b 500 --sortRegions keep -out samples_merged_sorted.matrix --missingDataAsZero --skipZeros --binSize 20
+/ddn/gs1/biotools/deepTools33/bin/computeMatrix reference-point -S GM2NFAT5.bw GM2NaClNFAT5.bw Het2NFAT5.bw Het2NaClNFAT5.bw Homo2NFAT5.bw Homo2NaClNFAT5.bw -R Protein_coding.bed -p 8 -a 1000 -b 1000 -out NFAT5_targets.matrix --missingDataAsZero --skipZeros --binSize 
+/ddn/gs1/biotools/deepTools33/bin/computeMatrix reference-point --referencePoint center -S *.bw -R *.bed -p 8 -a 1000 -b 1000 -out G4_precision.matrix --missingDataAsZero --skipZeros --binSize 20
+
+# Compute matrix using scale regions
+/ddn/gs1/biotools/deepTools33/bin/computeMatrix scale-regions -S testFiles/*bw -R testFiles/Cd_Up_NaCl_None.bed testFiles/NaCl_Up_CdNaCl_Down_Cd_NotUp.bed -p 8 -b 2000 -out Full_Gene.matrix --missingDataAsZero --skipZeros --binSize 20
+/ddn/gs1/biotools/deepTools33/bin/computeMatrix scale-regions -S DMSO_Ctrl_Rep1.bw DMSO_Ctrl_Rep2.bw DMSO_NaCl_Rep1.bw DMSO_NaCl_Rep2.bw DMSO_CdCl2_Rep1.bw DMSO_CdCl2_Rep2.bw DMSO_CdNa_Rep1.bw DMSO_CdNa_Rep2.bw TRIP_Ctrl_Rep1.bw TRIP_Ctrl_Rep2.bw TRIP_NaCl_Rep1.bw TRIP_NaCl_Rep2.bw TRIP_CdCl2_Rep1.bw TRIP_CdCl2_Rep2.bw TRIP_CdNa_Rep1.bw TRIP_CdNa_Rep2.bw -R GB_NaCl_increased.bed GB_NaCl_decreased.bed GB_CdCl2_increased.bed GB_CdCl2_decreased.bed -p 8 -a 1000 -b 1000 -m 2000 -out GB_PolSer5.matrix --missingDataAsZero --skipZeros --binSize 20
+/ddn/gs1/biotools/deepTools33/bin/computeMatrix scale-regions -S testFiles/*bw -R TF_Fb_NaCl.bed -p 8 -out PP_MEF2A.matrix --missingDataAsZero --skipZeros --binSize 20
+
+# Plot heatmaps
+/ddn/gs1/biotools/deepTools33/bin/plotHeatmap --matrixFile PND5_WTDES_enhancer.matrix --outFileName PND5_WTDES_enhancer.png --colorList darkblue,yellow,red
+/ddn/gs1/biotools/deepTools33/bin/plotHeatmap --matrixFile Mito_TSS_500.matrix --outFileName G4_at_MitoTSS_500.png --colorList darkblue,yellow,red
+
+# Plot heatmaps with multiple options
+/ddn/gs1/biotools/deepTools33/bin/plotHeatmap --matrixFile H3K27ac.matrix --outFileName H3K27ac_all.png --missingDataColor 1 --refPointLabel "center" --legendLocation none  -z gained lost --colorList 'white,blue' 'white,blue'
+/ddn/gs1/biotools/deepTools33/bin/plotHeatmap -m Full_Gene.matrix -o Full_Gene.png --outFileSortedRegions complete.txt --outFileNameMatrix complete.txt --missingDataColor 1 -z "CdCl2-Increased NaCl-NoChange" "NaCl-Increased CdCl2-Decreased" --colorList 'white,blue' 'white,blue'
+
+/ddn/gs1/biotools/deepTools33/bin/plotHeatmap -m NFAT5_TMM.matrix -o NFAT5_TMM.pdf --missingDataColor 1 --colorList 'white,blue' 'white,blue'
+
+# Plot heatmaps with Josh's custom python script
+/ddn/gs1/biotools/deepTools33/bin/plotHeatmap -m PROseq_0hr.matrix.txt.gz -o NaCl_0hr_338.pdf --yMax 0.015 --legendLocation none --yAxisLabel RPM --samplesLabel "NaCl 0hr" --missingDataColor 1 -z "NaCl increased RNAs" --colorList 'white,blue'
+
+# MultiBamSummary
+/ddn/gs1/biotools/deepTools33/bin/multiBamSummary BED-file --BED NaCl_G4_pp.bed -b *.bam -o NaCl_down.npz -p 8 -e --minMappingQuality 20 --outRawCounts counts.txt --scalingFactors scaleFactors.txt
+
+# MultiBigWigSummary
+/ddn/gs1/biotools/deepTools33/bin/multiBigwigSummary BED-file -b 3386NTBG4.bw 3386_MsIgG.bw 3386_H3K27me3.bw 3386_S96.bw BRACO19_1hr.bw BRACO19_4hr.bw BRACO19_24hr.bw RHPS4_1hr.bw RHPS4_4hr.bw RHPS4_24hr.bw CUT-Tag-BG4.bw -o BG4_comp_results.npz --BED Hg38_gencode_mito.bed --outRawCounts readcounts.txt
+/ddn/gs1/biotools/deepTools33/bin/multiBigwigSummary bins -b *.bw -o scATAC_results.npz
+
+# Plot Correlation
+/ddn/gs1/biotools/deepTools33/bin/plotCorrelation -in NaCl_down.npz -p heatmap -o NaCl_G4_spearman.pdf
+/ddn/gs1/biotools/deepTools33/bin/plotCorrelation -in NT_G41H6.npz -c pearson -p scatterplot --xRange 1 100 --yRange 1 100 --skipZeros --removeOutliers --plotTitle "Pearson Correlation Hg38 TSS" -o G41H6_TSS_scatterplot.pdf
+
+# Plot Enrichment
+/ddn/gs1/biotools/deepTools33/bin/plotEnrichment --BED NaCl_G4_pp.bed -b *.bam -o NaCl_down.pdf -p 8 -e --minMappingQuality 20
+
+# BigWig compare
+/ddn/gs1/biotools/deepTools33/bin/bigwigCompare -b1 A549_G4_C.bw -b2 A549_MsIgG_C.bw --skipZeroOverZero --operation subtract -o A549_G4_C_subtract.bw -of bigwig

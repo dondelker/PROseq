@@ -1,0 +1,9 @@
+# UMI_tools single sample
+srun --partition=bioinfo --cpus-per-task=8 umi_tools dedup --stdin=NOVA0255_Rep2-1hr_CTR.bam --umi-separator=":" --log=NOVA0255_Rep2-1hr_CTR.log --output-stats=NOVA0255_Rep2-1hr_CTR > NOVA0255_Rep2-1hr_unique.bam
+
+# UMI_tools multiple sample
+for file in *.bam; do echo srun --partition=bioinfo --cpus-per-task=8 umi_tools dedup --stdin="${file}" --umi-separator=":" --log="${file/bam/log}" --output-stats="${file/.bam/}" > "${file/.bam/_dedup.bam}"; done
+
+for file in *out.bam; do echo srun --partition=bioinfo --cpus-per-task=8 umi_tools dedup --stdin="${file}" --umi-separator=":" --log="${file/Aligned.sortedByCoord.out.bam/log}" --output-stats="${file/Aligned.sortedByCoord.out.bam/}" > "${file/Aligned.sortedByCoord.out.bam/nodups.bam}"; done
+
+umi_tools dedup --stdin=in.bam --umi-separator=":" --output-stats=out.tsv > out.bam
