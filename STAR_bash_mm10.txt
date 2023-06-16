@@ -1,0 +1,20 @@
+Mouse
+
+Single-end, single compressed fastq
+
+srun --partition=bioinfo --cpus-per-task=8 STAR --runMode alignReads --genomeDir /ddn/gs1/shared/dirib/reference_genomes/mm10/mm10gencode/indexSTAR_gencode.vM18.annotation --readFilesIn IMCD_d200813_RNA_unrx.CT.fastq.gz --readFilesCommand zcat --outFilterType BySJout --outSAMtype BAM SortedByCoordinate --outWigType bedGraph --outWigStrand Unstranded --outFileNamePrefix RNA_unrx
+
+
+Single-end, multiple compressed fastqs
+
+for file in *CT.fastq.gz; do echo srun --partition=bioinfo --cpus-per-task=8 STAR --runMode alignReads --genomeDir /ddn/gs1/shared/dirib/reference_genomes/mm10/mm10gencode/indexSTAR_gencode.vM18.annotation --readFilesIn "${file}" --readFilesCommand zcat --outFilterType BySJout --outSAMtype BAM SortedByCoordinate --outWigType bedGraph --outWigStrand Unstranded --outFileNamePrefix "${file/.CT.fastq.gz/}"; done
+
+
+
+Paired-end, multiple compressed fastqs
+
+for file in *CT.fastq.gz; do echo srun --partition=bioinfo --cpus-per-task=8 STAR --runMode alignReads --genomeDir /ddn/gs1/shared/dirib/reference_genomes/mm10/mm10gencode/indexSTAR_gencode.vM18.annotation --readFilesIn "${file}_20220119_154109.L001.CT.1.fastq.gz" "${file}_20220119_154109.L001.CT.2.fastq.gz" --readFilesCommand zcat --outFilterType BySJout --outSAMtype BAM SortedByCoordinate --outWigType bedGraph --outWigStrand Unstranded --outFileNamePrefix "${file/_20220119_154109.L001.CT.[12].fastq.gz/}"; done
+
+for file in $(ls *.fq.gz | sed -r 's/_val_[12].fq.gz//' | sort -u); do echo srun --partition=bioinfo --cpus-per-task=8 STAR --runMode alignReads --genomeDir /ddn/gs1/shared/dirib/reference_genomes/mm10/mm10gencode/indexSTAR_gencode.vM18.annotation --readFilesIn "${file}_val_1.fq.gz" "${file}_val_2.fq.gz" --readFilesCommand zcat --outFilterType BySJout --outSAMtype BAM SortedByCoordinate --outWigType bedGraph --outWigStrand Unstranded --outFileNamePrefix "${file/_val_[12].fq.gz/}"; done
+
+
